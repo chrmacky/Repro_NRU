@@ -23,7 +23,7 @@
 #define MEMORYSIZE 6
 
 // Period of the timer. on all multiples of this value the timer ISR ist called by the simulation
-#define TIMER_INTERVAL 50
+#define TIMER_INTERVAL 250
 
 // MINIMAL FRAMES PRO PROZESS auf 2 Frames festgelegt
 #define MINFRAMESPROZESS 1
