@@ -113,10 +113,22 @@ Boolean createPageTable(unsigned pid)
 /* Information on max. process size must be already stored in the PCB		*/
 /* Returns TRUE on success, FALSE otherwise									*/
 {
+	unsigned allocationCounter = 0; // counter for 
+
+	// there should be enough memory to start a process. minimum size is stored in MINFRAMEPROZESS
+	if (emptyFrameCounter < MINFRAMESPROZESS) {
+		printf("%6u : PID %3u : Process can't start, because out of memory!\n", systemTime, pid);
+		return FALSE;
+	}
 	pageTableEntry_t *pTable = NULL;
 	// create and initialise the page table of the process
 	pTable = malloc(processTable[pid].size * sizeof(pageTableEntry_t));
 	if (pTable == NULL) return FALSE; 
+	// if possible, allocate half of its size as memory to the process
+	allocationCounter = processTable[pid].size / 2;
+	if (emptyFrameCounter < allocationCounter) {
+
+	}
 	// initialise the page table
 	for (unsigned i = 0; i < processTable[pid].size; i++)
 	{
