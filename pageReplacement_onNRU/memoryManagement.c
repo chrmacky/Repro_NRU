@@ -90,48 +90,21 @@ int accessPage(unsigned pid, action_t action)
 	else
 	{// no: page is not present
 		logPid(pid, "Pagefault");
-		Boolean bIncrement = TRUE;
-		// replacement
-		frame = findUnusedFrame(pid, FALSE, FALSE);
-		if (frame < 0)
-			frame = findUnusedFrame(pid, FALSE, TRUE);
-
-		//if no free page available, try to allocate any reserved page with R-bit = 0 of requesting pid
-		if (frame < 0 && emptyFrameCounter > MEMORY_RESERVE)
-			frame = getEmptyFrame();
-
-		if (frame < 0)
-			frame = findUnusedFrame(pid, TRUE, FALSE);
-		else bIncrement = FALSE;
-
-		if (frame < 0)
-			frame = findUnusedFrame(pid, TRUE, TRUE);
-
-		//Last chance is ignoring the reserved memory space and assign any free space
-		if (frame < 0) {
-			frame = getEmptyFrame();
-			if (frame >= 0)
-				bIncrement = FALSE;
-		}
+		// check for an empty frame
+		frame = getEmptyFrame();
 		if (frame < 0)
 		{	// no empty frame available: start replacement algorithm to find candidate frame
-			//logPid(pid, "No empty frame found, running replacement algorithm");
-			//pageReplacement(&outPid, &outPage, &frame);
-			//// move candidate frame out to secondary storage
-			//movePageOut(outPid, outPage, frame);			
-			//frame = getEmptyFrame();
-			logPid(pid, "No memroy space available for process"); 
-			return INT_MAX;
+			logPid(pid, "No empty frame found, running replacement algorithm");
+			pageReplacement(&outPid, &outPage, &frame);
+			// move candidate frame out to secondary storage
+			movePageOut(outPid, outPage, frame);			
+			frame = getEmptyFrame();
 		} // now we have an empty frame to move the page into
 		// move page in to empty frame
 		movePageIn(pid, action.page, frame);
-		if (bIncrement)
-			emptyFrameCounter--;
-		//processTable[pid].pageTable[action.page].referenced  = TRUE;
 	}
 	// update page table for replacement algorithm
 	updatePageEntry(pid, action);
-	//updateEmptyProcessCounter();
 	return frame;
 }
 
@@ -151,32 +124,8 @@ Boolean createPageTable(unsigned pid)
 		pTable[i].frame = -1;
 		pTable[i].swapLocation = -1;
 	}
-
-	////Block at least one frame for process, but if available, block the MINFRAMESIZE
-	//unsigned count = emptyFrameCounter < MINFRAMESPROZESS ? emptyFrameCounter : MINFRAMESPROZESS;
-	//if (emptyFrameCounter < MEMORY_RESERVE)
-	//	count = 1;
-	//for (int i = 0; i < count; i++) {
-	//	//block one frame for the current process
-	//	//movePageIn(pid, -1, -1);
-	//}
-
 	processTable[pid].pageTable = pTable; 
 	return TRUE;
-}
-
-unsigned updateEmptyProcessCounter(void) {
-	/*unsigned counter = 0;
-	for (unsigned i = 0; i < MAX_PROCESSES; i++)
-		if (processTable[i].pageTable != NULL)
-			for (unsigned page = 0; page < processTable[i].size; page++)
-				if (processTable[i].pageTable[page].present &&
-					processTable[i].pageTable[page].frame >= 0)
-					counter++;
-	if (counter > MEMORYSIZE)
-		counter = MEMORYSIZE;
-	emptyFrameCounter = MEMORYSIZE - counter;*/
-	return emptyFrameCounter;
 }
 
 Boolean deAllocateProcess(unsigned pid)
@@ -195,7 +144,6 @@ Boolean deAllocateProcess(unsigned pid)
 		}
 	}
 	free(processTable[pid].pageTable);	// free the memory of the page table
-	//updateEmptyProcessCounter();
 	return TRUE;
 }
 
@@ -225,8 +173,7 @@ Boolean storeEmptyFrame(int frame)
 		}
 		else								// appent do the list
 			emptyFrameListTail->next = newEntry;
-		emptyFrameListTail = newEntry;
-		printf("INCREMENT %3d\n", frame);
+		emptyFrameListTail = newEntry; 
 		emptyFrameCounter++;				// one more free frame
 	}
 	return (newEntry != NULL); 
@@ -245,8 +192,7 @@ int getEmptyFrame(void)
 	// remove entry of that frame from the list
 	toBeDeleted = emptyFrameList;			
 	emptyFrameList = emptyFrameList->next; 
-	free(toBeDeleted);
-	printf("DECREMENT\n");
+	free(toBeDeleted); 
 	emptyFrameCounter--;					// one empty frame less
 	return emptyFrameNo; 
 }
@@ -356,93 +302,4 @@ Boolean pageReplacement(unsigned *outPid, unsigned *outPage, int *outFrame)
 		(*outFrame) = frame;
 	}
 	return found; 
-}
-
-// TODO: comment
-Boolean deAllocatePage(unsigned pid, unsigned page) {
-	int counter = 0;
-	int frame;
-	if (processTable[pid].valid && (processTable[pid].pageTable != NULL))
-		for (unsigned apage = 0; apage < processTable[pid].size; apage++) {
-			if (processTable[pid].pageTable[apage].present)
-				counter++;
-			if (apage == page)
-				frame = processTable[pid].pageTable[apage].frame;
-		}
-	if (counter > MINFRAMESPROZESS) {
-		printf("%6u PID %3u -> Free unused memory frame\n", systemTime, pid);
-		//frame = -1;
-		movePageOut(pid, page, frame);
-	}
-}
-
-int findUnusedFrame(unsigned pid, Boolean rBitSet, Boolean mBitSet)
-/* Returns the frame number of an unused frame according to the pid.								*/
-/* A return value of -1 indicates that no empty frame exists. In this case	*/
-/* a page replacement algorithm must be called to evict a page and thus 	*/
-/* clear one frame															*/
-{
-
-	//find classes
-	/*
-	R-Bit		M-Bit
-	0			0
-	0			1
-	1			0
-	1			1
-	*/
-	int frame = -1;
-	for (unsigned page = 0; page < processTable[pid].size; page++)
-		if (processTable[pid].pageTable[page].present &&
-			processTable[pid].pageTable[page].referenced == rBitSet &&
-			processTable[pid].pageTable[page].modified == mBitSet) {
-			frame = processTable[pid].pageTable[page].frame;
-			//Take care, that the old memory reference will be cleared before assign a new one
-			movePageOut(pid, page, frame);
-			//storeEmptyFrame(frame);
-			cleanFrameReference(pid, page, frame);
-			break;
-		}
-
-	return frame;
-}
-
-Boolean cleanFrameReference(unsigned pid, unsigned page, int frame) {
-	processTable[pid].pageTable[page].referenced = FALSE;
-	processTable[pid].pageTable[page].modified = FALSE;
-	processTable[pid].pageTable[page].frame = -1;
-	processTable[pid].pageTable[page].present = FALSE;
-	
-	// TODO: Frameeintrag auf EmptyFrameList entfernen
-	emptyFrameList->next = NULL;
-	// TODO: call emptyFrameCounter for update the correct value
-	return TRUE;
-}
-
-void printoutDebug(void) {
-	printf("EmptyFrames: %3u\n", emptyFrameCounter);
-	return;
-	for (unsigned i = 0; i < MAX_PROCESSES; i++)
-		if (processTable[i].pageTable != NULL) {
-			printf("      PID: %3u\n", i);
-
-			for (unsigned p = 0; p < processTable[i].size; p++) {
-				if (processTable[i].pageTable[p].present)
-				printf("\t->P%u\tR%d\tM%d\tF%d\tP%d\n", p, processTable[i].pageTable[p].referenced ? 1 : 0, 
-					processTable[i].pageTable[p].modified ? 1 : 0, processTable[i].pageTable[p].frame, processTable[i].pageTable[p].present ? 1 : 0);
-			}
-
-			printf("\n");
-		}
-}
-
-Boolean isMemoryAvailable(unsigned pid) {
-	//updateEmptyProcessCounter();
-	if (emptyFrameCounter > 0) return TRUE;
-	if (pid != INT_MAX && processTable[pid].pageTable != NULL) {
-		for (int i = 0; i < processTable[pid].size; i++)
-			if (processTable[pid].pageTable[i].present)
-				return TRUE;
-	}
-	return FALSE;
 }

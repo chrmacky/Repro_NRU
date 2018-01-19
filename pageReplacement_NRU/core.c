@@ -56,7 +56,8 @@ Boolean coreLoop(void)
 		}
 		systemTime = pMemoryEvent->time;	// set new system time according to next event
 
-		frame = executeMemoryEvent(pMemoryEvent, TRUE);
+		// call that controls the execution of the process
+		frame = executeMemoryEvent(pMemoryEvent);
 
 		if (frame < 0)	break;				// on error exit the simulation loop 
 
@@ -65,36 +66,33 @@ Boolean coreLoop(void)
 	return batchCompleted;
 }
 
-int executeMemoryEvent(memoryEvent_t *pMemoryEvent, Boolean executeStack) {
+int executeMemoryEvent(memoryEvent_t *pMemoryEvent) {
 	int frame = INT_MAX;				// physical address, neg. value indicate unrecoverable error
 	// process the event that is due now
 	switch (pMemoryEvent->action.op)
 	{
 	case start:
-		if (processTable[pMemoryEvent->pid].pageTable == NULL /* && isMemoryAvailable(pMemoryEvent->pid)*/) {
+		if (processTable[pMemoryEvent->pid].pageTable == NULL){
 			printf("%6u : PID %3u : Started\n", systemTime, pMemoryEvent->pid);
 			// allocate the initial number of frames for the process
 			createPageTable(pMemoryEvent->pid);
 		}
 		else {
-			//cannot start process right now -> process already startet before
-			printf("%6u : PID %3u : NOT Started -> Not enough free frames left.\n", systemTime, pMemoryEvent->pid);
+			//cannot start process right now -> process already started before and is running
+			printf("%6u : PID %3u : <<< ...process is already running... >>>\n", systemTime, pMemoryEvent->pid);
 		}
 		break;
 	case end:
-		if (processTable[pMemoryEvent->pid].pageTable != NULL) {
-			if (IsInStack(pMemoryEvent->pid)) {
-				PushToStack(pMemoryEvent);
-			}
-			else {
-				printf("%6u : PID %3u : Terminated\n", systemTime, pMemoryEvent->pid);
-				// free all frames used by the process
-				deAllocateProcess(pMemoryEvent->pid);
-				logMemoryMapping();
-			}
+		if (processTable[pMemoryEvent->pid].pageTable != NULL) 
+		{
+			printf("%6u : PID %3u : Terminated\n", systemTime, pMemoryEvent->pid);
+			// free all frames used by the process
+			deAllocateProcess(pMemoryEvent->pid);
 		}
-		else {
-			//Try to kill a not running process
+		else 
+		{
+			// process has already ended before and is not longer running
+			printf("%6u : PID %3u : Process not namend\n", systemTime, pMemoryEvent->pid);
 		}
 		break;
 	case read:
@@ -114,8 +112,10 @@ int executeMemoryEvent(memoryEvent_t *pMemoryEvent, Boolean executeStack) {
 				logPidMemPhysical(pMemoryEvent->pid, pMemoryEvent->action.page, frame);
 			}
 		}
-		else {
-			//try to acces a not running process
+		else 
+		{
+			// process has already ended before and is not longer running
+			printf("%6u : PID %3u : Process not namend\n", systemTime, pMemoryEvent->pid);
 		}
 		break;
 	default:
@@ -123,7 +123,7 @@ int executeMemoryEvent(memoryEvent_t *pMemoryEvent, Boolean executeStack) {
 		printf("%6u : PID %3u : ERROR in action coding\n", systemTime, pMemoryEvent->pid);
 		break;
 	}
-	if (executeStack && isMemoryAvailable(INT_MAX)) {
+	if (isMemoryAvailable(INT_MAX)) {
 		frame = executeFromStack(frame);
 	}
 	return frame;
