@@ -216,8 +216,6 @@ Boolean deAllocateProcess(unsigned pid)
 		}
 	}
 	*/
-	while (processTable[pid].assignedFrames != processTable[pid].availableFrames)
-	{
 		int page = -1;
 		int frame = -1;
 		while (processTable[pid].usedProcessFrame != NULL)
@@ -234,8 +232,6 @@ Boolean deAllocateProcess(unsigned pid)
 			processTable[pid].usedProcessFrame = processTable[pid].usedProcessFrame->next;
 		}
 		processTable[pid].pageTable = NULL;
-		
-	}
 	free(processTable[pid].pageTable);	// free the memory of the page table
 	return TRUE;
 }
