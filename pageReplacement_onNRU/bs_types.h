@@ -54,6 +54,18 @@ typedef struct pageTableEntry_struct
 
 } pageTableEntry_t;
 
+/* list type used by the OS to keep track of the currently available frames	*/
+/* in physical memory. Used for allocating additional and freeing used		*/
+/* pyhsical memory for/by processes											*/
+typedef struct frameListEntry_struct
+{
+	int frame;
+	int page;						// added page fpr processlist usedProcessFrames
+	struct frameListEntry_struct *next;
+} frameListEntry_t;
+
+typedef frameListEntry_t* frameList_t;
+
 /* data type for the Process Control Block */
 /* +++ this might need to be extended to support future features	+++ */
 /* +++ like additional schedulers or advanced memory management		+++ */
@@ -71,6 +83,10 @@ typedef struct PCB_struct
 	simInfo_t simInfo;
 	unsigned size;				// size of logical process memory in pages
 	pageTableEntry_t *pageTable;
+	unsigned assignedFrames;	// size of the assigned frames of the process
+	unsigned availableFrames;	// 
+	frameList_t usedProcessFrame;	// TODO: liste der zugesicherten Frames des Prozesses
+
 } PCB_t;
 
 /* data type for the possible actions wtr. memory usage by a process		*/
@@ -102,15 +118,5 @@ typedef struct event_struct
 	action_t action;
 } memoryEvent_t;
 
-/* list type used by the OS to keep track of the currently available frames	*/ 
-/* in physical memory. Used for allocating additional and freeing used		*/
-/* pyhsical memory for/by processes											*/
-typedef struct frameListEntry_struct
-{
-	int frame; 
-	struct frameListEntry_struct *next;
-} frameListEntry_t;
-
-typedef frameListEntry_t* frameList_t;
 
 #endif  /* __BS_TYPES__ */ 
