@@ -20,14 +20,10 @@
 #define MAX_PROCESSES (unsigned)100
 
 // Size of the physical memory available to user processes in frames
-#define MEMORYSIZE 5
+#define MEMORYSIZE 4
 
 // Period of the timer. on all multiples of this value the timer ISR ist called by the simulation
 #define TIMER_INTERVAL 50
-
-// MINIMUM NUMBER OF FRAMES PER PROCESS SET TO 2, CAN BE CHANGED TO A HIGHER VALUE. 
-// This consumes more memory for a process
-#define MINFRAMESPROZESS 2
 
 // name of the file with process definitions
 #define PROCESS_FILENAME "processes.txt"

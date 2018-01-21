@@ -58,45 +58,24 @@ Boolean coreLoop(void)
 		switch (pMemoryEvent->action.op)
 		{
 		case start: 
-			if (processTable[pMemoryEvent->pid].pageTable == NULL) {
-				printf("%6u : PID %3u : Starting process...\n", systemTime, pMemoryEvent->pid);
-				// allocate the initial number of frames for the process
-				createPageTable(pMemoryEvent->pid);
-			}
-			else {
-				//cannot start process right now -> process already started before and is running
-				printf("%6u : PID %3u : <<< ...process is already running... >>>\n", systemTime, pMemoryEvent->pid);
-			}
+			printf("%6u : PID %3u : Started\n", systemTime, pMemoryEvent->pid);
+			// allocate the initial number of frames for the process
+			createPageTable(pMemoryEvent->pid);
 			break;
 		case end:
-			if (processTable[pMemoryEvent->pid].pageTable != NULL) {
-				printf("%6u : PID %3u : Terminated\n", systemTime, pMemoryEvent->pid);
-				// free all frames used by the process
-				deAllocateProcess(pMemoryEvent->pid);
-			}
-			else {
-
-				// TODO bricht hier nicht richtig ab, da prozess infos noch teilweise vorhanden sind
-
-				// process has already ended before and is not longer running
-				printf("%6u : PID %3u : Process not namend\n", systemTime, pMemoryEvent->pid);
-			}
+			printf("%6u : PID %3u : Terminated\n", systemTime, pMemoryEvent->pid);
+			// free all frames used by the process
+			deAllocateProcess(pMemoryEvent->pid);
 			break;
 		case read: 
 		case write:
-			if (processTable[pMemoryEvent->pid].pageTable != NULL) {
-				// event contains the page in use
-				logPidMemAccess(pMemoryEvent->pid, pMemoryEvent->action);
-				// resolve the location of the page in physical memory, this is the key function for memory management
-				frame = accessPage(pMemoryEvent->pid, pMemoryEvent->action);
-				// update memory mapping for simulation
-				sim_UpdateMemoryMapping(pMemoryEvent->pid, pMemoryEvent->action, frame);
-				logPidMemPhysical(pMemoryEvent->pid, pMemoryEvent->action.page, frame);
-			}
-			else continue;
-			// Nothing to do, because the process was never started...
-			//else // process not namend now, therefore no way to read or write
-			//	printf("%6u : PID %3u : Can't operate on process \n", systemTime, pMemoryEvent->pid);
+			// event contains the page in use
+			logPidMemAccess(pMemoryEvent->pid, pMemoryEvent->action);
+			// resolve the location of the page in physical memory, this is the key function for memory management
+			frame = accessPage(pMemoryEvent->pid, pMemoryEvent->action);
+			// update memory mapping for simulation
+			sim_UpdateMemoryMapping(pMemoryEvent->pid, pMemoryEvent->action, frame);
+			logPidMemPhysical(pMemoryEvent->pid, pMemoryEvent->action.page, frame);
 			break;
 		default:
 		case error:

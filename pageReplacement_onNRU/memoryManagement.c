@@ -139,8 +139,17 @@ Boolean createPageTable(unsigned pid)
 	// try to give the process enough memory 
 	if (emptyFrameCounter / 2 < allocationCounter) allocationCounter = emptyFrameCounter / 2;
 	if (allocationCounter < MINFRAMESPROZESS) allocationCounter = MINFRAMESPROZESS;
+
+	if (allocationCounter > emptyFrameCounter)
+		allocationCounter = emptyFrameCounter;
+
+	if (emptyFrameCounter - allocationCounter < MINFRAMESPROZESS) {
+		allocationCounter = emptyFrameCounter;
+	}
+
 	processTable[pid].assignedFrames = allocationCounter;
 	processTable[pid].availableFrames = allocationCounter;
+	printf("%6u : PID %3u : Allocating %3u frames\n", systemTime, pid, allocationCounter);
 	// store the allocated value for the process in usedProcessFrame list
 	for (int i = 0; i < allocationCounter; i++) {
 		// assign the selected frame to the process, page -1 is initial worth, because no request has been placed on the process.
@@ -165,13 +174,24 @@ Boolean setProcessFrames(unsigned pid, int frame, int page, frameList_t *usedLis
 	newEntry->next = NULL;
 	newEntry->frame = frame;
 	newEntry->page = page;
+	sim_UpdateMemoryMapping(pid, (action_t) { allocate, -1 }, frame);
 	if (*usedList == NULL) {
 		*usedList = newEntry;
 	}
 	else {
-		if (*usedList == processTable[pid].usedProcessFrame) {
-			processTable[pid].usedProcessFrame->next = newEntry;
+		//find the last entry of the list
+		frameListEntry_t *tailEntry = NULL;
+		tailEntry = *usedList;
+		while (TRUE) {
+			if (tailEntry->next == NULL) {
+				tailEntry->next = newEntry;
+				break;
+			}
+			tailEntry = tailEntry->next;
 		}
+		/*if (*usedList == processTable[pid].usedProcessFrame) {
+			processTable[pid].usedProcessFrame->next = newEntry;
+		}*/
 	}
 }
 
@@ -232,7 +252,7 @@ Boolean deAllocateProcess(unsigned pid)
 			processTable[pid].usedProcessFrame = processTable[pid].usedProcessFrame->next;
 		}
 		processTable[pid].pageTable = NULL;
-	free(processTable[pid].pageTable);	// free the memory of the page table
+	//free(processTable[pid].pageTable);	// free the memory of the page table
 	return TRUE;
 }
 
@@ -374,7 +394,7 @@ Boolean pageReplacement(unsigned *outPid, unsigned *outPage, int *outFrame)
 	// find the frame to replaced based on the R-Bit and M-Bit
 	Boolean mBit = FALSE;
 	Boolean rBit = FALSE;
-	Boolean move = FALSE;
+	//Boolean move = FALSE;
 
 	for (int i = 0; i < 4; i ++) {
 		switch (i)
@@ -440,8 +460,10 @@ int findReplacFrame(int pid, Boolean rBitSet, Boolean mBitSet, frameList_t *used
 	{
 		if ((processTable[pid].pageTable[tmp->page].present) &&
 			(processTable[pid].pageTable[tmp->page].referenced == rBitSet) &&
-			(processTable[pid].pageTable[tmp->page].modified == mBitSet))
+			(processTable[pid].pageTable[tmp->page].modified == mBitSet)) {
 			frameValue = tmp->frame;//processTable[pid].pageTable[pid].frame;
+			break;
+		}
 		(tmp) = (tmp)->next;
 	}
 	return frameValue;

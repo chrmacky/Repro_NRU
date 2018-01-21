@@ -62,12 +62,16 @@ void logMemoryMapping(void)
 		{
 			frame = (row * 8 + column);
 			if (frame >= MEMORYSIZE) break;
-			printf("[%2u,", sim_MemoryMap[frame].pid);
-			if (sim_MemoryMap[frame].pid == 0 
-				|| sim_MemoryMap[frame].page == -1)  //in order to show the allocated/reserved, but unused process frames we won't have the output like [1,fffffff]
+			//printf(getFrameRBitState(frame) ? "R" : "");
+			
+			//printf("[%2u,", sim_MemoryMap[frame].pid);
+			printf("[%2u", sim_MemoryMap[frame].pid);
+			printf(hasFrameClockPointer(frame) ? "*" : ",");
+			if (sim_MemoryMap[frame].pid == 0)
 				printf("--]\t");
 			else
 				printf("%2x]\t", sim_MemoryMap[frame].page);
+			
 		}
 		printf("\n");
 	}
