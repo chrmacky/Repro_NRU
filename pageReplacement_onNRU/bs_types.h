@@ -60,7 +60,7 @@ typedef struct pageTableEntry_struct
 typedef struct frameListEntry_struct
 {
 	int frame;
-	int page;						// added page fpr processlist usedProcessFrames
+	int page;						// added page for processlist usedProcessFrames
 	struct frameListEntry_struct *next;
 } frameListEntry_t;
 
@@ -83,9 +83,9 @@ typedef struct PCB_struct
 	simInfo_t simInfo;
 	unsigned size;				// size of logical process memory in pages
 	pageTableEntry_t *pageTable;
-	unsigned assignedFrames;	// size of the assigned frames of the process
-	unsigned availableFrames;	// 
-	frameList_t usedProcessFrame;	// TODO: liste der zugesicherten Frames des Prozesses
+	unsigned assignedFrames;		// size of the assigned frames of the process
+	unsigned availableFrames;		// available frames of the process
+	frameList_t usedProcessFrame;	// list of committed frames of the process
 
 } PCB_t;
 

@@ -176,7 +176,7 @@ Boolean setProcessFrames(unsigned pid, int frame, int page, frameList_t *usedLis
 }
 
 // the process searches its own assigned frames and used the frame witch returns -1.
-// a local copy of the usedFrameProcess is used in search.
+// a local copy of the usedProcessFrame is used in search.
 int getFrameProcess(unsigned pid, int frame,int page, frameList_t *usedList) {
 	int frameValue = -1;
 	frameList_t tmp = *usedList;
