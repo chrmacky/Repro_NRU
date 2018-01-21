@@ -61,8 +61,9 @@ Boolean pageReplacement(unsigned *pid, unsigned *page, int *frame);
 
 Boolean setProcessFrames(unsigned pid, int frame, int page, frameList_t *usedList);
 
-
 int getFrameProcess(unsigned pid, int frame, int page, frameList_t *usedList);
+
+int findReplacFrame(int pid, Boolean rBitSet, Boolean mBitSet, frameList_t *usedList);
 
 /* ------------------------------------------------------------------------ */
 /*                Start of public Implementations							*/
@@ -140,9 +141,9 @@ Boolean createPageTable(unsigned pid)
 	if (allocationCounter < MINFRAMESPROZESS) allocationCounter = MINFRAMESPROZESS;
 	processTable[pid].assignedFrames = allocationCounter;
 	processTable[pid].availableFrames = allocationCounter;
-	// store the allocated Value for 
+	// store the allocated value for the process in usedProcessFrame list
 	for (int i = 0; i < allocationCounter; i++) {
-		// TODO: ausgewählte Frames dem Prozess zuweisen, Page -1 ist init wert, da noch keine anfrage für read/ write gestellt wurde
+		// assign the selected frame to the process, page -1 is initial worth, because no request has been placed on the process.
 		setProcessFrames(pid,getEmptyFrame(),-1, &processTable[pid].usedProcessFrame);
 	}
 	// initialise the page table
@@ -156,9 +157,8 @@ Boolean createPageTable(unsigned pid)
 	return TRUE;
 }
 
-// TODO: kommenteieren
-// TODO:	Fügt dem Prozess seine globalen Frames hinzu, damit kein anderer Prozess mehr darauf zugreifen kann. 
-//			Füllt eine Liste mit benutzten Frames vom Prozess.
+// function adds the frames to be used to the process from the global list 
+// so that no other process can access these frames.
 Boolean setProcessFrames(unsigned pid, int frame, int page, frameList_t *usedList) {
 	frameListEntry_t *newEntry = NULL;
 	newEntry = malloc(sizeof(frameListEntry_t));
@@ -175,13 +175,13 @@ Boolean setProcessFrames(unsigned pid, int frame, int page, frameList_t *usedLis
 	}
 }
 
-// TODO: kommentieren
-//			Prozess wird einem von ihm zugewiesenen Frame nutzten
+// the process searches its own assigned frames and used the frame witch returns -1.
+// a local copy of the usedFrameProcess is used in search.
 int getFrameProcess(unsigned pid, int frame,int page, frameList_t *usedList) {
 	int frameValue = -1;
 	frameList_t tmp = *usedList;
 	if (processTable[pid].availableFrames != 0) {
-		// TODO: überprüfe über alle zugeteilten Frames
+		// check over all assigned frames
 		for (unsigned i = 0; i < processTable[pid].assignedFrames;i++) {
 			while (tmp->page > -1)
 			{
@@ -371,7 +371,6 @@ Boolean pageReplacement(unsigned *outPid, unsigned *outPage, int *outFrame)
 	// I.e.: Iterate through the process table and for each valid PCB check 
 	//the valid entries in its page table until the frame is found
 
-	//TODO: gehe über alle Prozess Frames und schaue R-Bit und M-Bit an und entscheide anHande desses, welcher ersetzt werden soll
 	// find the frame to replaced based on the R-Bit and M-Bit
 	Boolean mBit = FALSE;
 	Boolean rBit = FALSE;
@@ -397,14 +396,13 @@ Boolean pageReplacement(unsigned *outPid, unsigned *outPage, int *outFrame)
 			mBit = TRUE;
 			break;
 		}
+		// returns the frame to be replaced
 		frame = findReplacFrame(pid, rBit, mBit, &processTable[pid].usedProcessFrame);
 		if (frame > -1) {
 			found = TRUE;
 			break;
 		}
 	}
-
-
 
 	pid = 0; page = 0; 
 	do 
@@ -431,8 +429,10 @@ Boolean pageReplacement(unsigned *outPid, unsigned *outPage, int *outFrame)
 }
 
 
+// function, that returns a frame based on the passed parameters. 
+// the pid, r-bit, m-bit and the usedProcessFrame list are passed as parameters.
 int findReplacFrame(int pid, Boolean rBitSet, Boolean mBitSet, frameList_t *usedList) {
-	// TODO: ändern des Typs von frameValue
+	
 	int frameValue = -1;
 	Boolean found = FALSE;
 	frameList_t tmp = *usedList;
