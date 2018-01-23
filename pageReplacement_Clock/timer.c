@@ -1,5 +1,6 @@
 /* Implementation of the timer handler function								*/
 /* for comments on the global functions see the associated .h-file			*/
+/* Autor:  Tarik Gün und Christoph Lemke						*/
 #include "bs_types.h"
 #include "global.h"
 #include "timer.h"

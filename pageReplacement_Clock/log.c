@@ -1,5 +1,6 @@
 /* Implementation of the log functions */
 /* for comments on the global functions see the associated .h-file	*/
+/* Autor:  Tarik Gün und Christoph Lemke						*/
 
 /* ---------------------------------------------------------------- */
 /* Include required external definitions */
@@ -48,6 +49,7 @@ void logPidMemPhysical(unsigned pid, unsigned page, unsigned frame)
 		systemTime, pid, page, frame);
 }
 
+/* Autor:  Tarik Gün und Christoph Lemke, update of the printing output				*/
 void logMemoryMapping(void)
 /* prints out a memory map showing the use of all frames of the physical mem*/
 {

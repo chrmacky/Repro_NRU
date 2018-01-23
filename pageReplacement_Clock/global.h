@@ -1,5 +1,6 @@
 /* Include-file defining global defines and constants  	 		*/
 /* used by the operating system */
+/* Autor:  Tarik Gün und Christoph Lemke						*/	
 #ifndef __GLOBAL__
 #define __GLOBAL__
 

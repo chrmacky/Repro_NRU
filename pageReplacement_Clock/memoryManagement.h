@@ -1,4 +1,5 @@
 /* Include-file defining the interface of the memory management system		*/
+/* Autor:  Tarik Gün und Christoph Lemke						*/
 #ifndef __MEMORY_MANAGEMENT__
 #define __MEMORY_MANAGEMENT__
 

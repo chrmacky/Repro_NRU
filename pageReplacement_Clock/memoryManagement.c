@@ -1,5 +1,6 @@
 // pageReplacement.cpp : Definiert den Einstiegspunkt für die Konsolenanwendung.
 //
+/* Autor:  Tarik Gün und Christoph Lemke						*/
 
 #include "memoryManagement.h"
 

@@ -1,5 +1,7 @@
 /* Include-file defining elementary data types used by the 			*/
 /* operating system */
+/* Autor:  Tarik Gün und Christoph Lemke						*/
+
 #ifndef __BS_TYPES__
 #define __BS_TYPES__
 
@@ -113,6 +115,7 @@ typedef struct frameListEntry_struct
 
 typedef frameListEntry_t* frameList_t;
 
+// TODO kommentieren
 typedef struct memoryFrameListEntry_struct
 {
 	int frame;
