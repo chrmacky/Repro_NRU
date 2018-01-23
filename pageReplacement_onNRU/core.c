@@ -76,9 +76,6 @@ Boolean coreLoop(void)
 				deAllocateProcess(pMemoryEvent->pid);
 			}
 			else {
-
-				// TODO bricht hier nicht richtig ab, da prozess infos noch teilweise vorhanden sind
-
 				// process has already ended before and is not longer running
 				printf("%6u : PID %3u : Process not namend\n", systemTime, pMemoryEvent->pid);
 			}
