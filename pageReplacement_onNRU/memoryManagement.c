@@ -60,10 +60,17 @@ Boolean pageReplacement(unsigned *pid, unsigned *page, int *frame);
 /* Returns TRUE on success and FALSE on any error							*/
 
 Boolean setProcessFrames(unsigned pid, int frame, int page, frameList_t *usedList);
+/* function adds the frames to be used to the process from the global list  */
+/* so that no other process can access these frames.						*/
 
 int getFrameProcess(unsigned pid, int frame, int page, frameList_t *usedList);
+/* the process searches its own assigned frames and used the				*/
+/* frame witch returns -1. a local copy of the usedProcessFrame				*/
+/* is used in search.														*/
 
 int findReplacFrame(int pid, Boolean rBitSet, Boolean mBitSet, frameList_t *usedList);
+/* function, that returns a frame based on the passed parameters.           */
+
 
 /* ------------------------------------------------------------------------ */
 /*                Start of public Implementations							*/
@@ -223,35 +230,22 @@ Boolean deAllocateProcess(unsigned pid)
 /* free the physical memory used by a process, destroy the page table		*/
 /* returns TRUE on success, FALSE on error									*/
 {
-	// iterate the page table and mark all currently used frames as free
-	/*
-	pageTableEntry_t *pTable = processTable[pid].pageTable;
-	for (unsigned i = 0; i < processTable[pid].size; i++)
+	int page = -1;
+	int frame = -1;
+	while (processTable[pid].usedProcessFrame != NULL)
 	{
-		if (pTable[i].present == TRUE)
-		{	// page is in memory, so free the allocated frame
-			storeEmptyFrame(pTable[i].frame);	// add to pool of empty frames
-			// update the simulation accordingly !! DO NOT REMOVE !!
-			sim_UpdateMemoryMapping(pid, (action_t) { deallocate, i }, pTable[i].frame);
-		}
+		page = processTable[pid].usedProcessFrame->page;
+		frame = processTable[pid].usedProcessFrame->frame;
+		storeEmptyFrame(frame);
+		sim_UpdateMemoryMapping(pid, (action_t) { deallocate, page }, frame);
+		processTable[pid].pageTable[page].present = FALSE;
+		processTable[pid].pageTable[page].referenced = FALSE;
+		processTable[pid].pageTable[page].modified = FALSE;
+		processTable[pid].pageTable[page].frame = -1;
+		processTable[pid].availableFrames++;
+		processTable[pid].usedProcessFrame = processTable[pid].usedProcessFrame->next;
 	}
-	*/
-		int page = -1;
-		int frame = -1;
-		while (processTable[pid].usedProcessFrame != NULL)
-		{
-			page = processTable[pid].usedProcessFrame->page;
-			frame = processTable[pid].usedProcessFrame->frame;
-			storeEmptyFrame(frame);
-			sim_UpdateMemoryMapping(pid, (action_t) { deallocate, page }, frame);
-			processTable[pid].pageTable[page].present = FALSE;
-			processTable[pid].pageTable[page].referenced = FALSE;
-			processTable[pid].pageTable[page].modified = FALSE;
-			processTable[pid].pageTable[page].frame = -1;
-			processTable[pid].availableFrames++;
-			processTable[pid].usedProcessFrame = processTable[pid].usedProcessFrame->next;
-		}
-		processTable[pid].pageTable = NULL;
+	processTable[pid].pageTable = NULL;
 	//free(processTable[pid].pageTable);	// free the memory of the page table
 	return TRUE;
 }
