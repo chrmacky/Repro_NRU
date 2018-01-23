@@ -66,7 +66,7 @@ void logMemoryMapping(void)
 			
 			//printf("[%2u,", sim_MemoryMap[frame].pid);
 			printf("[%2u", sim_MemoryMap[frame].pid);
-			printf(hasFrameClockPointer(frame) ? "*" : ",");
+			printf(hasFrameClockPointer(frame) ? "*" : ",");	// if the pointer on this frame, then print "*" instead of ","
 			if (sim_MemoryMap[frame].pid == 0)
 				printf("--]\t");
 			else

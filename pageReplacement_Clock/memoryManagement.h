@@ -12,8 +12,15 @@ Boolean initMemoryManager(void);		// initialise the memory management system emp
 /* initialises the memory manager, allocates and iniatlises the				*/
 /* required data structures													*/
 
+
 Boolean cleanupClockMemory();
+
+/* Helper function for debug output,										*/
+/* it should be displayed on all the frame when the R-BIT is set			*/
 Boolean getFrameRBitState(int frame); 
+
+/* Helper function, that returns TRUE or FALSE if the pointer is on			*/
+/* the passed frame															*/
 Boolean hasFrameClockPointer(int frame);
 
 int accessPage(unsigned pid, action_t action);
