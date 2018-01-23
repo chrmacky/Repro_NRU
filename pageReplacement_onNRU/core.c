@@ -1,6 +1,7 @@
 /* Implementation of core functionality of the OS					*/
 /* this includes the main scheduling loop							*/
 /* for comments on the global functions see the associated .h-file	*/
+/* Autor:  Tarik Gün und Christoph Lemke						*/
 
 /* ---------------------------------------------------------------- */
 /* Include required external definitions */
