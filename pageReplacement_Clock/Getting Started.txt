@@ -1,0 +1,43 @@
+Getting Started
+
+Um das Paging für NRU zu starten wird eine run.txt mit beschriebenen Prozessen vorrausgesetzt. Auch die processes.txt mit all den Prozessen die in der run.txt aufgeführt werden, muss darin mit ihrer Größe enthalten sein. Für eine eigene Abarbeitung von Prozesses muss die Datei eine Zeit, die Prozessnummer und eine Aktion beinhalten. Wird in der run.txt ein Prozess aufgeführt, der eine Seite lesen oder schreiben soll, die über seine eigentliche Größe hinausgeht, bricht das Programm ab. Da kein Prozess über seine eigentliche Größe hinaus Speicher reservieren kann. 
+Es ist auch mögiche eine zufällige Abarbeitung des jeweiligen Seitenersetzungsalgorithmus durchzuführen. Dazu muss in der global.h der #define RUN_FILENAME "" ein Leerstring enthalten. Es kann hier über #define MEMORYSIZE 4 die Größe der zur Verfügung stehenden Frames beschrieben werden. Initial ist dieser Wert auf 4 eingestellt. 
+Die ausführbare Datei ist im Debug Ordner zu finden, in ihm müssen auch die run.txt und die processes.txt liegen.
+
+Beispiel:
+run.txt
+# <time> <PID> <action> <action> ...          
+#	S for start
+# 	E for end i.e. termination of the process, yielding in freeing all occupied frames
+#	<no> use of the page with the given number
+# file must be ordered by ascending time stamps
+10 1 S 
+12 1 W0
+15 1 R2
+20 2 S
+22 2 W0
+25 2 R2
+30 3 S
+40 3 R1
+45 1 E
+55 2 R3
+
+processes.txt
+# <PID> <size>   ; number of entries on process table given by largest PID
+1 4
+2 8
+
+
+das Verhalten
+Die Memorysize ist auf 4 eingestellt.
+Ab Zeiteinheit 10 wird der Prozess 1 gestartet.
+In Zeiteinheit 12 schreibt der Prozess 1 auf seine Seite 0 und muss, weil es ein pagefault auslöst, diese in den globalen Frames einlagern. Dabei wird der Frame 0 genutzt und der Pointer auf diese Stelle gesetzt. Das R-Bit ist gesetzt.
+In Zeiteinheit 15 liest der Prozess 1 seine Seite 2 und muss diese in die globale Liste einlagern. Da es ein pagefault zu Grunde liegt, muss diese in Frame 1 eingelagert werden. Der Pointer bleibt auf Frame 0 stehen.
+In Zeiteinheit 20 startet der Prozess 2.
+In Zeiteinheit 22 schreibt der Prozess auf seine Seite 0 und muss, weil es ein pagefault auslöst, diese in den globalen Frames einlagern. Dabei wird der Frame 2 genutzt und der Pointer bleibt weiterhin auf Frame 0 stehen.
+In Zeiteinheit 25 liest der Prozess 2 seine Seite 2 und muss diese durch ein pagefault in den Frame 3 einlagern. Der Pointer bleibt weiterhin auf Frame 0 stehen. Somit sind alle Speicherplätze des Systems belegt, somit muss ab dieser Stelle eine Seite ausgewählt werden, die ersetzt wird.
+In Zeiteinheit 30 startet der Prozess 3.
+In Zeiteinheit 40 liest der Prozess 3 seine Seite 1 und stellt fest dass sie nicht eingelagert ist, aber diesem Zeitpunkt greift der Clock-Algorithmus. Dieser wählt nun durch abfrage ab der Position des Pointers welchen Frame er nutzen kann, damit Prozess 3 seine Seite einlagern kann. Da alle Prozesse zuvor referenziert wurden, werden beim ersten Durchlauf alle R-Bits auf FALSE gesetzt. Der Pointer zieht dabei von Frame zu Frame und überprüft ob die Seite vom Prozess zuvor referenziert wurde, ist dies der Fall wird das R-Bit auf FALSE gesetzt, ist die Seite nicht referenziert, hat der Algorithmus eine Seite gefunden die ersetzt werden kann. In diesem Beispiel findet er bei dem Durchlauf den Frame 0 und ersetzt diese Seite für den Prozess 3 mit seiner Seite 1. Der Pointer zieht dabei auf den Frame 1.
+In Zeiteinheit 45 wird der Prozess 1 beendet, damit werden auch alle seine Verweise aus den vergebenen Frames entfernt, das betrifft in dem Fall nur noch den Frame 1. Der Pointer steht weiterhin auf diesen Frame.
+In Zeiteinheit 50 werden alle R-Bits auf FALSE gesetzt. Der Pointer bleibt weiterhin auf Frame 1 stehen.
+In Zeiteinheit 55 liest der Prozess 3 seine Seite 3 und muss durch ein pagefault diese einlagern, er findet in Frame 1 eine leere noch nicht zugewiesene Seite und lagert seine Seite ein. Der Pointer zieht dabei einen Frame weiter auf Frame 2.
