@@ -22,7 +22,7 @@ Boolean storeEmptyFrame(int frame);
 /* Store the frame number in the data structure of empty frames				*/
 /* and update emptyFrameCounter												*/
 
-
+/* Clock page replacement algorithm											*/
 int findNextFrame(void);
 
 
@@ -51,7 +51,7 @@ Boolean updatePageEntry(unsigned pid, action_t action);
 /* ------------------------------------------------------------------------ */
 /*                Start of public Implementations							*/
 
-// TODO comment
+// fill clock with x amount of empty entries depending on the size of "MEMORYSIZE"
 Boolean initMemoryManager(void)
 {
 	memoryFrameListEntry_t* current = NULL;
@@ -79,6 +79,8 @@ Boolean initMemoryManager(void)
 	return TRUE;
 }
 
+
+// Iterate through clock and set reference attribute of each element to FALSE
 Boolean cleanupClockMemory() {
 
 	for (int i = 0; i < MEMORYSIZE; i++)
@@ -106,7 +108,8 @@ int accessPage(unsigned pid, action_t action)
 	{// no: page is not present
 		logPid(pid, "Pagefault");
 
-		// TODO comment
+		// pagefault, set frame to return value of "findNextFrame"
+		// running replacement algorithm 
 		frame = findNextFrame();
 		// move page in to empty frame
 		movePageIn(pid, action.page, frame);
@@ -192,10 +195,12 @@ Boolean storeEmptyFrame(int frame)
 	return (newEntry != NULL);
 }
 
-// 
+// runs the clock page replacement algorithm
 int findNextFrame(void) {
 	int frame = -1;
+	// Run frame found and returned
 	while (TRUE) {
+		// Do the actual replacement if a non referenced frame is found
 		if (!clockFrameList[clockCurrentPointer->frame].referenced) {
 			frame = clockCurrentPointer->frame;
 			clockCurrentPointer = clockCurrentPointer->next;
@@ -204,6 +209,7 @@ int findNextFrame(void) {
 			for (unsigned pid = 0; pid < MAX_PROCESSES; pid++) {
 				if (processTable[pid].valid && processTable[pid].pageTable != NULL) {
 					for (unsigned page = 0; page < processTable[pid].size; page++) {
+						// Throw page out of physical memory and set attributes to FALSE if frame found
 						if (processTable[pid].pageTable[page].frame == frame) {
 							processTable[pid].pageTable[page].present = FALSE;
 							processTable[pid].pageTable[page].referenced = FALSE;
@@ -216,6 +222,7 @@ int findNextFrame(void) {
 
 			return frame;
 		}
+		// Set current frame reference to FALSE and move pointer
 		clockCurrentPointer->referenced = FALSE;
 		clockFrameList[clockCurrentPointer->frame].referenced = FALSE;
 		clockCurrentPointer = clockCurrentPointer->next;

@@ -115,7 +115,8 @@ typedef struct frameListEntry_struct
 
 typedef frameListEntry_t* frameList_t;
 
-// TODO kommentieren
+// circular linked list, clock
+// saves the attributes of frame, if referenced and a pointer to the next element
 typedef struct memoryFrameListEntry_struct
 {
 	int frame;

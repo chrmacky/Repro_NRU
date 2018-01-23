@@ -14,6 +14,7 @@ Boolean initMemoryManager(void);		// initialise the memory management system emp
 /* required data structures													*/
 
 
+/* set all frames reference attribute to FALSE								*/		
 Boolean cleanupClockMemory();
 
 /* Helper function for debug output,										*/

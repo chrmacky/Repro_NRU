@@ -24,7 +24,7 @@ void timerEventHandler(void)
 				if (processTable[pid].pageTable[page].present)
 					processTable[pid].pageTable[page].referenced = FALSE; 
 	}
-
+	// set all frames reference attribute to FALSE 
 	cleanupClockMemory();
 		
 	// for a more sophisticated memory management systems with reasonable 
