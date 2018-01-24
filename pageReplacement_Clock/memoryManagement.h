@@ -19,6 +19,9 @@ Boolean cleanupClockMemory();
 
 /* Helper function for debug output,										*/
 /* it should be displayed on all the frame when the R-BIT is set			*/
+/* is for debug purposes to use.											*/
+/* in the print output, it appears on every frame whether					*/
+/* the R-Bit is set or not.													*/
 Boolean getFrameRBitState(int frame); 
 
 /* Helper function, that returns TRUE or FALSE if the pointer is on			*/

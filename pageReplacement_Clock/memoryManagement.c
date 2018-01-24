@@ -8,7 +8,7 @@ unsigned emptyFrameCounter;		// number of empty Frames
 frameList_t emptyFrameList = NULL;
 frameListEntry_t *emptyFrameListTail = NULL;
 memoryFrameList_t clockFrameList = NULL;
-memoryFrameListEntry_t *clockCurrentPointer = NULL;
+memoryFrameListEntry_t *clockCurrentPointer = NULL;		// current position of the pointer
 
 
 /* ------------------------------------------------------------------------ */
